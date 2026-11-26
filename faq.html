@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ – Tyke’s Sources</title>
+<meta name="description" content="Frequently asked questions.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="faqpage">
+<canvas id="bg" aria-hidden="true"></canvas>
+<header class="top"><div class="top-in c3">
+  <a class="brand" href="index.html" id="title"></a>
+  <nav id="nav" aria-label="Pages"></nav>
+  <div class="hsoc" id="hsoc"></div>
+</div></header>
+
+<section class="hero slim" id="top">
+  <div>
+    <h1 id="h1"></h1>
+    <p class="sub">Quick answers to the questions I get asked the most.</p>
+    <div class="stats" id="stats"></div>
+  </div>
+  <div class="scene" aria-hidden="true"><canvas class="pad" id="pad" aria-hidden="true"></canvas></div>
+</section>
+
+<main class="wrap" id="out"></main>
+<footer>© Tyke’s Sources</footer>
+
+<script src="common.js"></script>
+<script src="faq.js"></script>
+<script src="scene.js"></script>
+<script>
+logo3d($("title"),"T",8,1.5);$("title").setAttribute("aria-label",TITLE+" home");$("title").title=TITLE+" home";
+logo3d($("h1"),"FAQ",14,2.5);
+pageNav("faq");
+const H=330;
+
+function parseFaq(text){
+  const out=[];let cat="",cur=null;
+  for(const raw of text.split(/\r?\n/)){
+    const line=raw.trim();
+    if(!line||line.startsWith("//"))continue;
+    if(line.startsWith("##")){cat=line.replace(/^#+\s*|[\s#]+$/g,"");cur=null;continue}
+    if(line.startsWith("?")){cur={cat,q:line.replace(/^\?+\s*/,""),a:[]};out.push(cur);continue}
+    if(cur)cur.a.push(line);
+  }
+  return out.filter(x=>x.q);
+}
+/* turn plain https:// addresses in an answer into links */
+function linkify(p,text){
+  text.split(/(https?:\/\/[^\s]+)/g).forEach((part,i)=>{
+    if(!part)return;
+    if(i%2){const a=mk("a",null,part);a.href=part;p.appendChild(a)}else p.appendChild(document.createTextNode(part));
+  });
+  return p;
+}
+const QA=parseFaq(FAQ),out=$("out"),items=[];
+const st=mk("span","stat");st.style.setProperty("--h",H);st.append(mk("span","dot"),document.createTextNode(QA.length+(QA.length===1?" question":" questions")));$("stats").appendChild(st);
+
+function setOpen(it,open){
+  it.el.classList.toggle("open",open);it.btn.setAttribute("aria-expanded",open);
+  it.pane.setAttribute("aria-hidden",!open);
+}
+function build(){
+  const sec=mk("section","sec");sec.style.setProperty("--h",H);
+  if(!QA.length){
+    const d=mk("div","empty");d.style.setProperty("--h",H);
+    const big=mk("span","big");big.setAttribute("aria-hidden","true");big.appendChild(mk("span","qm","?"));
+    d.append(big,mk("h3",null,"No questions yet"),mk("p",null,"Questions and answers will show up here with each update."));
+    sec.appendChild(d);return sec;
+  }
+  const bar=mk("div","faqbar"),find=mk("div","find"),inp=mk("input");
+  inp.type="search";inp.placeholder="Search the FAQ";inp.setAttribute("aria-label","Search the FAQ");inp.autocomplete="off";
+  find.append(inp,mk("span","mag"));
+  const all=mk("button","btn s","Expand all");all.type="button";
+  bar.append(find,all);
+  const count=mk("div","faqcount");count.setAttribute("aria-live","polite");
+  sec.append(bar,count);
+  let list=null,lastCat=null,n=0;const cats=[];
+  QA.forEach((x,i)=>{
+    if(x.cat!==lastCat||!list){
+      lastCat=x.cat;
+      let head=null;if(x.cat){head=mk("div","faqcat",x.cat);sec.appendChild(head)}
+      list=mk("div","faq");sec.appendChild(list);cats.push({head,list,items:[]});
+    }
+    const el=mk("div","qa"),id="qa"+i,btn=mk("button","q");btn.type="button";btn.id=id+"-q";btn.setAttribute("aria-controls",id+"-a");btn.setAttribute("aria-expanded","false");
+    btn.append(mk("span","num",String(i+1).padStart(2,"0")),mk("span","qt",x.q),mk("span","pm"));
+    const pane=mk("div","pane");pane.id=id+"-a";pane.setAttribute("role","region");pane.setAttribute("aria-labelledby",id+"-q");pane.setAttribute("aria-hidden","true");
+    const ans=mk("div","ans"),inner=mk("div","ans-in");x.a.forEach(t=>inner.appendChild(linkify(mk("p"),t)));
+    ans.appendChild(inner);pane.appendChild(ans);el.append(btn,pane);list.appendChild(el);
+    const it={el,btn,pane,text:(x.q+" "+x.a.join(" ")).toLowerCase()};items.push(it);cats[cats.length-1].items.push(it);
+    btn.addEventListener("click",()=>{setOpen(it,!el.classList.contains("open"));sync()});
+  });
+  function sync(){
+    const vis=items.filter(i=>!i.el.hidden);
+    all.textContent=vis.length&&vis.every(i=>i.el.classList.contains("open"))?"Collapse all":"Expand all";
+  }
+  function filter(){
+    const q=inp.value.trim().toLowerCase();let shown=0;
+    items.forEach(it=>{const m=!q||it.text.includes(q);it.el.hidden=!m;if(m)shown++});
+    cats.forEach(c=>{const any=c.items.some(i=>!i.el.hidden);c.list.hidden=!any;if(c.head)c.head.hidden=!any});
+    count.textContent=q?(shown?shown+" of "+items.length+" questions":"Nothing matches “"+inp.value.trim()+"”. Try another word."):"";
+    sync();
+  }
+  inp.addEventListener("input",filter);
+  all.addEventListener("click",()=>{
+    const vis=items.filter(i=>!i.el.hidden),open=!vis.every(i=>i.el.classList.contains("open"));
+    vis.forEach(i=>setOpen(i,open));sync();
+  });
+  return sec;
+}
+out.appendChild(build());
+
+const cta=mk("div","cta");cta.style.setProperty("--h",H);
+const txt=mk("div","txt");txt.append(mk("h3",null,"Still have a question?"),mk("p",null,"Ask in the Discord and I will help you out."));
+const dc=mk("a","btn p");dc.href="https://discord.gg/JWGgkWvyWD";dc.innerHTML=DISCORD_SVG+"<span>Join the Discord</span>";
+cta.append(txt,dc);out.appendChild(cta);
+initScene("question");
+</script>
+<script src="bg.js"></script>
+</body>
+</html>

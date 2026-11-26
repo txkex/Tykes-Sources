@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorials – Tyke’s Sources</title>
+<meta name="description" content="Tutorials made by me. for any request please join my discord!">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<header class="top"><div class="top-in c3">
+  <a class="brand" href="index.html" id="title"></a>
+  <nav id="nav" aria-label="Pages"></nav>
+  <div class="hsoc" id="hsoc"></div>
+</div></header>
+
+<section class="hero slim" id="top">
+  <div>
+    <h1 id="h1"></h1>
+    <p class="sub" id="sub"></p>
+    <div class="stats" id="stats"></div>
+  </div>
+  <div class="scene" aria-hidden="true"><canvas class="pad" id="pad" aria-hidden="true"></canvas></div>
+</section>
+
+<main class="wrap" id="out"></main>
+<footer>© Tyke’s Sources</footer>
+
+<script src="common.js"></script>
+<script src="tutorials.js"></script>
+<script src="scene.js"></script>
+<script>
+logo3d($("title"),"T",8,1.5);$("title").setAttribute("aria-label",TITLE+" home");$("title").title=TITLE+" home";
+const BASE=LOGOS.length,TUT=parseTut(TUTORIALS);
+
+function buildNav(cur){
+  pageNav("tutorials");
+}
+function hero(title,sub,stats,h){
+  LOGOS.length=BASE;logo3d($("h1"),title,14,2.5);$("sub").textContent=sub;
+  const st=$("stats");st.replaceChildren();
+  stats.forEach(t=>{const s=mk("span","stat");s.style.setProperty("--h",h);s.append(mk("span","dot"),document.createTextNode(t));st.appendChild(s)});
+}
+const plural=(n,w)=>n+" "+w+(n===1?"":"s");
+function empty(){
+  const d=mk("div","empty");d.style.setProperty("--h",TUT_H);
+  const big=mk("span","big");big.setAttribute("aria-hidden","true");big.appendChild(mk("span","yt"));
+  d.append(big,mk("h3",null,"No tutorials here yet"),mk("p",null,"New tutorials will show up on this page with each update. Check back soon."));
+  return d;
+}
+function hub(){
+  document.title="Tutorials – "+TITLE;
+  const vids=TUT.reduce((n,g)=>n+g.links.length,0);
+  hero("Tutorials","Tutorials made by me. for any request please join my discord!",TUT.length?[plural(TUT.length,"topic"),plural(vids,"video")]:["Coming soon"],TUT_H);
+  const sec=mk("section","sec");sec.style.setProperty("--h",TUT_H);
+  if(!TUT.length)sec.appendChild(empty());
+  else{sec.appendChild(mk("h2",null,"Topics"));
+    const g=mk("div","tgrid");TUT.forEach((t,i)=>g.appendChild(tutBtn(t,i)));sec.appendChild(reveal(g))}
+  return sec;
+}
+function groupPage(i){
+  const g=TUT[i],h=PAL[i%PAL.length];
+  document.title=g.name+" – Tutorials – "+TITLE;
+  hero(g.name,"Here are videos for this topic for any help join my discord!",[plural(g.links.length,"video")],h);
+  const sec=mk("section","sec");sec.style.setProperty("--h",h);
+  const cr=mk("nav","crumbs");cr.setAttribute("aria-label","Breadcrumb");
+  const all=mk("a",null,"Tutorials");all.href="tutorials.html#";
+  cr.append(all,mk("span","sep","/"),mk("span",null,g.name));
+  const grid=mk("div","vgrid wide");g.links.forEach(l=>grid.appendChild(video(l)));
+  sec.append(cr,reveal(grid));
+  const pg=mk("div","pager"),card=(t,k,dir)=>{const a=mk("a","pcard "+dir);a.href="tutorials.html#"+t.id;a.style.setProperty("--h",PAL[k%PAL.length]);a.append(mk("small",null,dir==="prev"?"Previous":"Next"),mk("b",null,t.name));return a};
+  if(TUT[i-1])pg.appendChild(card(TUT[i-1],i-1,"prev"));
+  if(TUT[i+1])pg.appendChild(card(TUT[i+1],i+1,"next"));
+  if(pg.children.length)sec.appendChild(pg);
+  return sec;
+}
+function render(){
+  const id=decodeURIComponent(location.hash.slice(1)).toLowerCase(),i=TUT.findIndex(g=>g.id===id);
+  buildNav(i);
+  $("out").replaceChildren(i<0?hub():groupPage(i));
+  scrollTo(0,0);
+}
+addEventListener("hashchange",render);
+render();initScene("play");
+</script>
+<script src="bg.js"></script>
+</body>
+</html>
