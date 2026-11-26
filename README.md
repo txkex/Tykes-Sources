@@ -8,7 +8,6 @@ This is Tyke's Sources a website where you can find whatever media you need! Use
 - `tutorials.html` and `faq.html` – the Tutorials and FAQ pages.
 - `tutorials.js`, `faq.js`, `style.css`, `common.js`, `scene.js`, `bg.js` – the content, look and code the pages need.
 - `logo.png` – the logo shown at the top of this file.
-- `videos` – my own tutorial videos, including `how-to-edit-the-site.mp4`.
 
 Keep everything together in one folder. The pages stop working properly if you move a file out on its own.
 
