@@ -1,6 +1,6 @@
 <p align="center"><img src="logo.png" alt="Tyke’s Sources" width="520"></p>
 
-An offline copy of my site, so you can run it on your own computer or host it on a NAS or home server. I keep it updated, so to get the latest version just replace the files with the newest download.
+This is Tyke's Sources a website where you can find whatever media you need! Use an offline copy of my site, so you can run it on your own computer or host it on a NAS or home server. I keep it updated, so to get the latest version just replace the files with the newest download.
 
 ## What is in the folder
 
